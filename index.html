@@ -1,512 +1,96 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Toon Cat AR</title>
+  <meta charset="UTF-8">
+  <title>AR Cat</title>
 
-  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+
+  <!-- AR.js -->
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Baloo+2:wght@400;600;700;800&display=swap" rel="stylesheet" />
 
-  <style>
-    :root {
-      --primary: #ff7043;
-      --accent:  #ffc107;
-      --dark:    #2d1a0e;
-      --mid:     #7a4f2e;
-      --soft:    #f3e5d8;
-      --bg:      #fdf6ee;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--dark); }
-
-    /* PAGE SYSTEM */
-    .page { display: none; }
-    .page.active { display: block; }
-
-    /* ======= HOME ======= */
-    .home-wrap { min-height: 100vh; overflow-x: hidden; }
-
-    .navbar {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-      padding: 15px 30px;
-      display: flex; align-items: center; justify-content: space-between;
-      background: rgba(253,246,238,.92); backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(255,112,67,.1);
-    }
-    .nav-logo {
-      font-family: 'Baloo 2', sans-serif; font-weight: 800;
-      font-size: 1.2rem; color: var(--primary);
-      display: flex; align-items: center; gap: 8px;
-    }
-    .btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 11px 26px; border-radius: 999px;
-      font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: .95rem;
-      cursor: pointer; border: none; transition: transform .18s, box-shadow .18s;
-      text-decoration: none;
-    }
-    .btn:hover { transform: translateY(-2px); }
-    .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 16px rgba(255,112,67,.3); }
-    .btn-primary:hover { box-shadow: 0 8px 24px rgba(255,112,67,.4); }
-    .btn-outline { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
-    .btn-outline:hover { background: var(--primary); color: #fff; }
-    .btn-white { background: #fff; color: var(--primary); font-weight: 800; }
-
-    .hero {
-      min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      padding: 100px 24px 60px; position: relative; overflow: hidden;
-    }
-    .hero::before {
-      content:''; position:absolute; width:480px; height:480px;
-      top:-80px; right:-80px; border-radius:50%;
-      background: radial-gradient(circle,#ffb89a44 0%,transparent 70%);
-      pointer-events:none;
-    }
-    .hero::after {
-      content:''; position:absolute; width:360px; height:360px;
-      bottom:-60px; left:-60px; border-radius:50%;
-      background: radial-gradient(circle,#4fc3f733 0%,transparent 70%);
-      pointer-events:none;
-    }
-    .hero-inner {
-      max-width: 940px; width: 100%;
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 52px; align-items: center; position: relative; z-index: 1;
-    }
-    .tag {
-      display: inline-block; background: var(--soft); color: var(--primary);
-      font-weight: 700; font-size: .74rem; letter-spacing: 2px;
-      text-transform: uppercase; padding: 6px 15px; border-radius: 999px; margin-bottom: 16px;
-    }
-    .hero-text h1 {
-      font-family: 'Baloo 2', sans-serif; font-weight: 800;
-      font-size: clamp(2rem,5vw,3.2rem); line-height: 1.15; margin-bottom: 14px;
-    }
-    .hero-text h1 span { color: var(--primary); }
-    .hero-text p { font-size: 1rem; color: var(--mid); line-height: 1.7; margin-bottom: 26px; }
-    .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
-
-    .cat-card {
-      background: #fff; border-radius: 26px; padding: 38px 26px;
-      box-shadow: 0 8px 32px rgba(45,26,14,.12); text-align: center;
-      position: relative; max-width: 270px; width: 100%; margin: 0 auto;
-      animation: float 3.2s ease-in-out infinite;
-    }
-    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-    .cat-emoji { font-size: 5.2rem; display: block; margin-bottom: 10px; }
-    .cat-name  { font-family:'Baloo 2',sans-serif; font-weight:700; font-size:1rem; margin-bottom:4px; }
-    .cat-desc  { font-size:.8rem; color:var(--mid); }
-    .badge {
-      position:absolute; top:-10px; right:-10px;
-      background:var(--accent); color:var(--dark);
-      font-weight:800; font-size:.67rem; padding:5px 11px;
-      border-radius:999px; letter-spacing:1px;
-    }
-
-    .section { padding: 68px 24px; }
-    .section-inner { max-width: 940px; margin: 0 auto; }
-    .section-title { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:1.65rem; text-align:center; margin-bottom:40px; }
-    .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
-    .fc {
-      background:#fff; border-radius:16px; padding:24px 20px; text-align:center;
-      box-shadow:0 4px 18px rgba(45,26,14,.07);
-      transition:transform .2s,box-shadow .2s;
-    }
-    .fc:hover { transform:translateY(-4px); box-shadow:0 8px 28px rgba(45,26,14,.12); }
-    .fc .ico { font-size:2.3rem; margin-bottom:10px; display:block; }
-    .fc h3 { font-family:'Baloo 2',sans-serif; font-weight:700; margin-bottom:7px; font-size:.95rem; }
-    .fc p  { font-size:.86rem; color:var(--mid); line-height:1.6; }
-
-    .steps-bg { background:var(--soft); }
-    .grid-steps { display:grid; grid-template-columns:repeat(3,1fr); gap:26px; margin-top:40px; }
-    .step { text-align:center; }
-    .step-num {
-      width:48px; height:48px; border-radius:50%;
-      background:var(--primary); color:#fff;
-      font-family:'Baloo 2',sans-serif; font-weight:800; font-size:1.25rem;
-      display:flex; align-items:center; justify-content:center; margin:0 auto 11px;
-    }
-    .step h4 { font-family:'Baloo 2',sans-serif; font-weight:700; margin-bottom:7px; }
-    .step p   { font-size:.86rem; color:var(--mid); line-height:1.6; }
-
-    .cta-box {
-      max-width:500px; margin:0 auto;
-      background:var(--primary); border-radius:26px; padding:46px 34px;
-      color:#fff; text-align:center;
-      box-shadow:0 12px 40px rgba(255,112,67,.35);
-    }
-    .cta-box h2 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:1.75rem; margin-bottom:9px; }
-    .cta-box p  { opacity:.84; margin-bottom:22px; }
-
-    .footer { text-align:center; padding:22px; font-size:.84rem; color:var(--mid); border-top:1px solid var(--soft); }
-
-    /* ======= AR PAGE ======= */
-    #page-ar {
-      background:#0d0d0d; width:100vw; height:100vh;
-      overflow:hidden; position:fixed; inset:0; z-index:0;
-    }
-    #ar-scene {
-      position:fixed !important; inset:0 !important;
-      width:100% !important; height:100% !important; z-index:1 !important;
-    }
-    .ar-hud {
-      position:fixed; inset:0; z-index:10; pointer-events:none;
-      display:flex; flex-direction:column; justify-content:space-between;
-    }
-    .ar-topbar {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:16px 18px;
-      background:linear-gradient(to bottom,rgba(0,0,0,.55),transparent);
-      pointer-events:all;
-    }
-    .ar-back {
-      display:flex; align-items:center; gap:8px;
-      color:#fff; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:.88rem;
-      background:rgba(255,255,255,.15); backdrop-filter:blur(8px);
-      padding:7px 15px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.2); cursor:pointer;
-      transition:background .2s; pointer-events:all;
-    }
-    .ar-back:hover { background:rgba(255,255,255,.25); }
-    .ar-title { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:.92rem; color:#fff; opacity:.9; }
-    .ar-status {
-      display:flex; align-items:center; gap:6px;
-      font-size:.73rem; letter-spacing:1px; color:rgba(255,255,255,.7);
-      background:rgba(0,0,0,.3); backdrop-filter:blur(8px);
-      padding:6px 13px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-    }
-    .s-dot { width:7px; height:7px; border-radius:50%; background:#4fc3f7; animation:blink 1.8s infinite; }
-    .s-dot.found { background:#66bb6a; animation:none; }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
-
-    .scan-frame {
-      position:absolute; top:50%; left:50%;
-      transform:translate(-50%,-50%);
-      width:210px; height:210px;
-      pointer-events:none; transition:opacity .4s;
-    }
-    .cf { position:absolute; width:25px; height:25px; border-color:rgba(255,112,67,.85); border-style:solid; }
-    .cf.tl { top:0;left:0; border-width:3px 0 0 3px; border-radius:4px 0 0 0; }
-    .cf.tr { top:0;right:0; border-width:3px 3px 0 0; border-radius:0 4px 0 0; }
-    .cf.bl { bottom:0;left:0; border-width:0 0 3px 3px; border-radius:0 0 0 4px; }
-    .cf.br { bottom:0;right:0; border-width:0 3px 3px 0; border-radius:0 0 4px 0; }
-    .scan-line {
-      position:absolute; left:8px; right:8px; height:2px;
-      background:linear-gradient(to right,transparent,rgba(255,112,67,.9),transparent);
-      top:0; border-radius:2px;
-      animation:scanmove 2.2s ease-in-out infinite;
-    }
-    @keyframes scanmove {
-      0%{top:8px;opacity:0} 10%{opacity:1} 90%{opacity:1} 100%{top:calc(100% - 10px);opacity:0}
-    }
-
-    .ar-bottombar {
-      display:flex; flex-direction:column; align-items:center; gap:9px;
-      padding:0 24px 26px;
-      background:linear-gradient(to top,rgba(0,0,0,.6),transparent);
-      pointer-events:all;
-    }
-    .ar-hint { font-size:.8rem; color:rgba(255,255,255,.6); text-align:center; }
-    .sound-controls {
-      display:flex; align-items:center; gap:13px;
-      background:rgba(0,0,0,.4); backdrop-filter:blur(12px);
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:999px; padding:7px 20px;
-    }
-    .sound-label { font-size:.76rem; color:rgba(255,255,255,.52); font-family:'Baloo 2',sans-serif; }
-    .sound-btn {
-      width:36px; height:36px; border-radius:50%;
-      background:var(--primary); border:none; color:#fff;
-      font-size:.95rem; cursor:pointer;
-      display:flex; align-items:center; justify-content:center;
-      transition:transform .15s,background .15s;
-    }
-    .sound-btn:hover { transform:scale(1.1); }
-    .sound-btn.muted { background:rgba(255,255,255,.15); }
-    .track-info { font-size:.72rem; color:rgba(255,255,255,.42); min-width:70px; text-align:center; }
-
-    .toast {
-      position:fixed; bottom:116px; left:50%; transform:translateX(-50%);
-      background:rgba(0,0,0,.75); backdrop-filter:blur(8px);
-      color:#fff; font-size:.8rem; padding:8px 18px;
-      border-radius:999px; border:1px solid rgba(255,255,255,.15);
-      pointer-events:none; z-index:20;
-      opacity:0; transition:opacity .4s; white-space:nowrap;
-    }
-    .toast.show { opacity:1; }
-
-    .m-overlay {
-      position:fixed; inset:0; z-index:30;
-      background:rgba(0,0,0,.85); backdrop-filter:blur(4px);
-      display:flex; align-items:center; justify-content:center; padding:24px;
-    }
-    .m-card {
-      background:#1a1a1a; border:1px solid rgba(255,112,67,.3);
-      border-radius:22px; padding:30px 26px;
-      max-width:310px; width:100%; text-align:center; color:#fff;
-    }
-    .big-cat { font-size:3.6rem; margin-bottom:10px; }
-    .m-card h2 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:1.2rem; margin-bottom:9px; }
-    .m-card p  { font-size:.86rem; color:rgba(255,255,255,.62); line-height:1.65; margin-bottom:18px; }
-    .m-img-wrap {
-      background:#fff; border-radius:10px; padding:9px;
-      display:inline-block; margin-bottom:20px;
-      box-shadow:0 4px 18px rgba(255,112,67,.22);
-    }
-    .m-img-wrap img { width:90px; height:90px; display:block; }
-    .btn-start {
-      background:var(--primary); color:#fff;
-      font-family:'Baloo 2',sans-serif; font-weight:700; font-size:.92rem;
-      border:none; padding:12px 30px; border-radius:999px;
-      cursor:pointer; width:100%;
-      transition:opacity .2s,transform .15s;
-    }
-    .btn-start:hover { opacity:.88; transform:translateY(-2px); }
-
-    @media (max-width:700px) {
-      .navbar { padding:13px 16px; }
-      .hero-inner { grid-template-columns:1fr; gap:34px; text-align:center; }
-      .hero-btns { justify-content:center; }
-      .hero-visual { order:-1; }
-      .grid3 { grid-template-columns:1fr; }
-      .grid-steps { grid-template-columns:1fr; }
-      .cta-box { padding:34px 20px; }
-    }
-  </style>
+  <!-- Animation Mixer -->
+  <script src="https://cdn.jsdelivr.net/npm/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
 </head>
-<body>
 
-<!-- ===== HOME PAGE ===== -->
-<div id="page-home" class="page active">
-  <div class="home-wrap">
+<body style="margin:0; overflow:hidden;">
 
-    <nav class="navbar">
-      <div class="nav-logo">🐾 Toon Cat AR</div>
-      <button class="btn btn-primary" onclick="showAR()">🔍 Buka AR</button>
-    </nav>
+<a-scene embedded arjs>
 
-    <section class="hero">
-      <div class="hero-inner">
-        <div class="hero-text">
-          <span class="tag">✨ Web AR Experience</span>
-          <h1>Kucing Kartun <span>Muncul</span> di Dunia Nyata</h1>
-          <p>Arahkan kamera ke marker <strong>HIRO</strong> dan saksikan kucing lucu 3D beraksi lengkap dengan animasi dan suara — langsung dari browser!</p>
-          <div class="hero-btns">
-            <button class="btn btn-primary" onclick="showAR()">🐱 Mulai AR Sekarang</button>
-            <a href="#cara" class="btn btn-outline">Cara Pakai</a>
-          </div>
-        </div>
-        <div class="hero-visual">
-          <div class="cat-card">
-            <span class="badge">3D + SUARA</span>
-            <span class="cat-emoji">🐱</span>
-            <div class="cat-name">Toon Cat</div>
-            <div class="cat-desc">GLB · AR.js · Hiro Marker</div>
-          </div>
-        </div>
-      </div>
-    </section>
+  <!-- Asset -->
+  <a-assets>
+    <audio id="cat1" src="sound_cat_1.mp3"></audio>
+    <audio id="cat2" src="sound_cat_2.mp3"></audio>
+  </a-assets>
 
-    <section class="section">
-      <div class="section-inner">
-        <h2 class="section-title">Kenapa Seru? 🎉</h2>
-        <div class="grid3">
-          <div class="fc"><span class="ico">🎭</span><h3>Animasi 3D</h3><p>Model kucing 3D dengan animasi bawaan yang hidup dan menggemaskan.</p></div>
-          <div class="fc"><span class="ico">🔊</span><h3>Suara Kucing</h3><p>Dua suara kucing bergantian otomatis saat marker terdeteksi.</p></div>
-          <div class="fc"><span class="ico">📱</span><h3>Tanpa Aplikasi</h3><p>Langsung buka di browser — tidak perlu install app apapun.</p></div>
-        </div>
-      </div>
-    </section>
+  <!-- Marker Hiro -->
+  <a-marker preset="hiro" id="marker">
 
-    <section class="section steps-bg" id="cara">
-      <div class="section-inner">
-        <h2 class="section-title">Cara Pakai 📋</h2>
-        <div class="grid-steps">
-          <div class="step"><div class="step-num">1</div><h4>Siapkan Marker HIRO</h4><p>Cetak atau tampilkan marker HIRO di layar lain (minimal 5×5 cm).</p></div>
-          <div class="step"><div class="step-num">2</div><h4>Buka Kamera AR</h4><p>Tap "Mulai AR" dan izinkan akses kamera saat browser meminta.</p></div>
-          <div class="step"><div class="step-num">3</div><h4>Arahkan ke Marker</h4><p>Kucing 3D akan muncul lengkap dengan animasi dan suara otomatis!</p></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="cta-box">
-        <h2>Siap Coba? 🐾</h2>
-        <p>Butuh kurang dari 30 detik untuk melihat kucing AR pertamamu!</p>
-        <button class="btn btn-white" onclick="showAR()">🎯 Buka Kamera AR</button>
-      </div>
-    </section>
-
-    <footer class="footer">
-      🐱 Toon Cat AR · AR.js + A-Frame · Marker: HIRO<br>
-      <small style="opacity:.6">Pastikan akses via HTTPS agar kamera berfungsi.</small>
-    </footer>
-
-  </div>
-</div>
-
-
-<!-- ===== AR PAGE ===== -->
-<div id="page-ar" class="page">
-
-  <a-scene
-    id="ar-scene"
-    embedded
-    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
-    vr-mode-ui="enabled: false"
-    renderer="logarithmicDepthBuffer: true; precision: medium; antialias: true;"
-    style="display:none">
-
-    <a-assets timeout="30000">
-      <a-asset-item id="cat-model" src="toon_cat_free.glb"></a-asset-item>
-      <audio id="snd1" src="sound_cat_1.mp3" preload="auto"></audio>
-      <audio id="snd2" src="sound_cat_2.mp3" preload="auto"></audio>
-    </a-assets>
-
-    <a-marker id="hiro-marker" preset="hiro">
-      <a-entity
-        id="cat-entity"
-        gltf-model="#cat-model"
+  <!-- Model Kucing -->
+    <a-entity
+        id="catModel"
+        gltf-model="toon_cat_free.glb"
         position="0 0 0"
+        scale="0.004 0.004 0.004"
         rotation="0 0 0"
-        scale="0.5 0.5 0.5"
-        animation-mixer="clip: *; loop: repeat; crossFadeDuration: 0.3"
-        shadow="cast: true">
-      </a-entity>
+        animation-mixer="loop: repeat">
+    </a-entity>
+
     </a-marker>
 
-    <a-entity camera></a-entity>
-  </a-scene>
+  <!-- Camera -->
+  <a-entity camera></a-entity>
 
-  <div class="ar-hud" id="ar-hud" style="display:none">
-    <div class="ar-topbar">
-      <button class="ar-back" onclick="showHome()">← Home</button>
-      <div class="ar-title">🐱 Toon Cat AR</div>
-      <div class="ar-status">
-        <span class="s-dot" id="s-dot"></span>
-        <span id="s-text">MENUNGGU</span>
-      </div>
-    </div>
-
-    <div class="scan-frame" id="scan-frame">
-      <div class="cf tl"></div><div class="cf tr"></div>
-      <div class="cf bl"></div><div class="cf br"></div>
-      <div class="scan-line"></div>
-    </div>
-
-    <div class="ar-bottombar">
-      <p class="ar-hint" id="ar-hint">Arahkan kamera ke marker HIRO 🎯</p>
-      <div class="sound-controls">
-        <span class="sound-label">🔊 SUARA</span>
-        <button class="sound-btn" id="mute-btn" onclick="toggleMute()">🔊</button>
-        <span class="track-info" id="track-info">—</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="toast" id="toast">📍 Kucing terdeteksi!</div>
-
-  <div class="m-overlay" id="m-overlay">
-    <div class="m-card">
-      <div class="big-cat">🐱</div>
-      <h2>Siapkan Marker HIRO</h2>
-      <p>Cetak atau tampilkan marker di bawah ini, lalu arahkan kamera kepadanya. Izinkan akses kamera ketika diminta.</p>
-      <div class="m-img-wrap">
-        <img src="https://raw.githack.com/AR-js-org/AR.js/master/data/images/hiro.png"
-             alt="HIRO marker"
-             onerror="this.parentElement.innerHTML='<p style=color:#333;padding:8px;font-size:.8rem>HIRO MARKER</p>'" />
-      </div>
-      <button class="btn-start" onclick="startCamera()">🎯 Mulai Kamera AR</button>
-    </div>
-  </div>
-
-</div>
-
+</a-scene>
 
 <script>
-  /* Navigation */
-  function showAR() {
-    document.getElementById('page-home').classList.remove('active');
-    document.getElementById('page-ar').classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-  function showHome() {
-    stopAllSounds();
-    markerVisible = false;
-    document.getElementById('ar-scene').style.display = 'none';
-    document.getElementById('ar-hud').style.display   = 'none';
-    document.getElementById('m-overlay').style.display = 'flex';
-    document.getElementById('page-ar').classList.remove('active');
-    document.getElementById('page-home').classList.add('active');
-    document.body.style.overflow = '';
-  }
-  function startCamera() {
-    document.getElementById('m-overlay').style.display = 'none';
-    document.getElementById('ar-scene').style.display  = 'block';
-    document.getElementById('ar-hud').style.display    = 'flex';
+
+const marker = document.querySelector("#marker");
+
+const sound1 = document.querySelector("#cat1");
+const sound2 = document.querySelector("#cat2");
+
+let started = false;
+
+marker.addEventListener("markerFound", () => {
+
+  if(started) return;
+
+  started = true;
+
+  playSoundsLoop();
+
+});
+
+async function playSoundsLoop(){
+
+  while(true){
+
+    sound1.currentTime = 0;
+    await sound1.play();
+
+    await waitForEnd(sound1);
+
+    sound2.currentTime = 0;
+    await sound2.play();
+
+    await waitForEnd(sound2);
+
   }
 
-  /* Sound */
-  const sounds   = [document.getElementById('snd1'), document.getElementById('snd2')];
-  let curSound   = 0;
-  let isMuted    = false;
-  let markerVisible = false;
-  let soundTimer = null;
+}
 
-  function stopAllSounds() {
-    sounds.forEach(s => { try { s.pause(); s.currentTime = 0; } catch(e){} });
-    clearTimeout(soundTimer);
-  }
-  function playNext() {
-    if (isMuted || !markerVisible) return;
-    stopAllSounds();
-    const snd = sounds[curSound];
-    document.getElementById('track-info').textContent = 'Track ' + (curSound + 1) + '/2';
-    snd.play().catch(() => {});
-    snd.onended = () => {
-      if (!markerVisible || isMuted) return;
-      soundTimer = setTimeout(() => { curSound = (curSound + 1) % 2; playNext(); }, 600);
-    };
-  }
-  function toggleMute() {
-    isMuted = !isMuted;
-    const btn = document.getElementById('mute-btn');
-    btn.textContent = isMuted ? '🔇' : '🔊';
-    btn.classList.toggle('muted', isMuted);
-    if (isMuted) { stopAllSounds(); document.getElementById('track-info').textContent = 'Muted'; }
-    else if (markerVisible) { playNext(); }
-  }
+function waitForEnd(audio){
 
-  /* Marker events */
-  document.addEventListener('DOMContentLoaded', () => {
-    const marker = document.getElementById('hiro-marker');
-    if (!marker) return;
-    marker.addEventListener('markerFound', () => {
-      markerVisible = true;
-      document.getElementById('s-dot').classList.add('found');
-      document.getElementById('s-text').textContent   = 'KUCING MUNCUL';
-      document.getElementById('ar-hint').textContent  = '🐱 Kucing terdeteksi! Jaga marker terlihat.';
-      document.getElementById('scan-frame').style.opacity = '0';
-      const t = document.getElementById('toast');
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 2500);
-      curSound = 0; playNext();
-    });
-    marker.addEventListener('markerLost', () => {
-      markerVisible = false;
-      document.getElementById('s-dot').classList.remove('found');
-      document.getElementById('s-text').textContent   = 'MENUNGGU';
-      document.getElementById('ar-hint').textContent  = 'Arahkan kamera ke marker HIRO 🎯';
-      document.getElementById('scan-frame').style.opacity = '1';
-      document.getElementById('track-info').textContent = '—';
-      stopAllSounds();
-    });
+  return new Promise(resolve => {
+
+    audio.onended = resolve;
+
   });
+
+}
+
 </script>
 
 </body>
